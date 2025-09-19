@@ -9,7 +9,12 @@ export default function SignInPage() {
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow">
         <h2 className="text-2xl font-bold text-center">Sign In</h2>
         <form className="space-y-4" action={SignInAction}>
-          <Input name="email" type="email" placeholder="Email" required />
+          <Input
+            name="phone"
+            type="phone"
+            placeholder="Phone Number"
+            required
+          />
           <Input
             name="password"
             type="password"

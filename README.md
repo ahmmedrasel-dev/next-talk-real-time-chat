@@ -12,7 +12,24 @@ NextTalk is a modern real-time chat application built with Next.js, featuring:
 
 ## Getting Started
 
-## Getting Started
+### Environment Setup
+
+1. Copy the environment example file to create your local environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Edit `.env.local` with your specific configuration:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+# Add other environment variables as needed
+```
+
+3. For production, configure `.env.production` with production values.
+
+### Running the Application
 
 First, install dependencies and run the development server:
 
