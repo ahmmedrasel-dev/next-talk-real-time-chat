@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { MessagesSquare, User } from "lucide-react"; // Import icons
+import { MessagesSquare, User, LogOut } from "lucide-react"; // Import icons
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 // Define types for our data for better type safety
 type Contact = {
@@ -25,76 +27,6 @@ const contacts: Contact[] = [
     name: "Alice",
     photoUrl: "https://randomuser.me/api/portraits/women/1.jpg",
   },
-  {
-    id: 2,
-    name: "Bob",
-    photoUrl: "https://randomuser.me/api/portraits/men/2.jpg",
-  },
-  {
-    id: 3,
-    name: "Charlie",
-    photoUrl: "https://randomuser.me/api/portraits/men/3.jpg",
-  },
-  {
-    id: 4,
-    name: "David",
-    photoUrl: "https://randomuser.me/api/portraits/men/4.jpg",
-  },
-  {
-    id: 5,
-    name: "Eve",
-    photoUrl: "https://randomuser.me/api/portraits/women/5.jpg",
-  },
-  {
-    id: 6,
-    name: "Frank",
-    photoUrl: "https://randomuser.me/api/portraits/men/6.jpg",
-  },
-  {
-    id: 7,
-    name: "Grace",
-    photoUrl: "https://randomuser.me/api/portraits/women/7.jpg",
-  },
-  {
-    id: 8,
-    name: "Hannah",
-    photoUrl: "https://randomuser.me/api/portraits/women/8.jpg",
-  },
-  {
-    id: 9,
-    name: "Ian",
-    photoUrl: "https://randomuser.me/api/portraits/men/9.jpg",
-  },
-  {
-    id: 10,
-    name: "Jack",
-    photoUrl: "https://randomuser.me/api/portraits/men/10.jpg",
-  },
-  {
-    id: 11,
-    name: "Karen",
-    photoUrl: "https://randomuser.me/api/portraits/women/11.jpg",
-  },
-  {
-    id: 12,
-    name: "Leo",
-    photoUrl: "https://randomuser.me/api/portraits/men/12.jpg",
-  },
-  {
-    id: 13,
-    name: "Mona",
-    photoUrl: "https://randomuser.me/api/portraits/women/13.jpg",
-  },
-  {
-    id: 14,
-    name: "Nina",
-    photoUrl: "https://randomuser.me/api/portraits/women/14.jpg",
-  },
-  {
-    id: 15,
-    name: "Oscar",
-    photoUrl: "https://randomuser.me/api/portraits/men/15.jpg",
-  },
 ];
 
 const messages: Message[] = [
@@ -104,8 +36,14 @@ const messages: Message[] = [
 ];
 
 export default function ChatRoomPage() {
-  // State to hold the search query
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    signOut();
+    router.push("/");
+  };
 
   // Filter contacts based on the search query
   const filteredContacts = contacts.filter((contact) =>
@@ -115,7 +53,7 @@ export default function ChatRoomPage() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar: Contacts */}
-      <aside className="w-64 bg-white border-r flex flex-col">
+      <aside className="w-96 bg-white border-r flex flex-col">
         {/* App Logo and Title */}
         <div className="p-4 border-b flex items-center gap-3">
           <MessagesSquare className="h-6 w-6 text-blue-600" />
@@ -157,6 +95,30 @@ export default function ChatRoomPage() {
             </li>
           ))}
         </ul>
+
+        {/* Logged-in User Info and Logout Button */}
+        <div className="p-4 border-t">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* <Image
+                src={loggedInUser.photoUrl}
+                alt={loggedInUser.name + " photo"}
+                width={36}
+                height={36}
+                className="w-9 h-9 object-cover rounded-full border"
+              /> */}
+              <span className="font-semibold text-sm">{user?.full_name}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5 text-gray-600" />
+            </Button>
+          </div>
+        </div>
       </aside>
 
       {/* Main Chat Area */}

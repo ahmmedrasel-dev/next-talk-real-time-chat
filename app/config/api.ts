@@ -27,7 +27,7 @@ export const API_CONFIG = {
   endpoints: {
     auth: {
       signup: "/users/signup",
-      signin: "/users/signin",
+      signin: "/users/login",
       signout: "/users/signout",
       refreshToken: "/users/refresh-token",
       me: "/users/me",
@@ -47,5 +47,29 @@ export const DEFAULT_FETCH_OPTIONS: RequestInit = {
   headers: {
     "Content-Type": "application/json",
   },
-  credentials: "include", // Include cookies in requests
+};
+
+/**
+ * Make an authenticated API request
+ * @param url - The API endpoint URL
+ * @param options - Fetch options
+ * @returns Fetch response
+ */
+export const makeAuthenticatedRequest = async (
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  const token = localStorage.getItem("auth_token");
+
+  const headers = {
+    ...DEFAULT_FETCH_OPTIONS.headers,
+    ...options.headers,
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+
+  return fetch(url, {
+    ...DEFAULT_FETCH_OPTIONS,
+    ...options,
+    headers,
+  });
 };

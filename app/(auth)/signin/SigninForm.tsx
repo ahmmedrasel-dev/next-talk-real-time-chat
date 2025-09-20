@@ -1,34 +1,52 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useActionState } from "react";
-
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { signInAction, SigninFormState } from "@/app/actions/SignInAction";
-import { SubmitButton } from "@/components/ui/SubmitButton";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/app/hooks/useAuth";
 
 export default function SigninForm() {
-  // Define the initial state for the form
-  const initialState: SigninFormState = {
-    message: "",
-    status: "idle",
-  };
+  const router = useRouter();
+  const { signIn, loading } = useAuth();
 
-  // Hook up the server action to manage state
-  const [state, formAction] = useActionState(signInAction, initialState);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMessage("");
+
+    try {
+      const success = await signIn(phone, password);
+
+      if (success) {
+        // Redirect to chat page on successful login
+        router.push("/chat");
+      } else {
+        setErrorMessage("Login failed. Please check your credentials.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+    }
+  };
 
   return (
     <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-lg">
       <h2 className="text-2xl font-bold text-center">Sign In</h2>
 
-      <form className="space-y-4" action={formAction}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <label htmlFor="phone">Phone Number</label>
           <Input
             id="phone"
-            name="phone"
             type="tel"
             placeholder="Your phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             required
           />
         </div>
@@ -36,18 +54,21 @@ export default function SigninForm() {
           <label htmlFor="password">Password</label>
           <Input
             id="password"
-            name="password"
             type="password"
             placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <SubmitButton />
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Signing in..." : "Sign In"}
+        </Button>
 
-        {/* Display server error messages */}
-        {state.message && state.status === "error" && (
-          <p className="text-sm text-center text-red-500">{state.message}</p>
+        {/* Display error messages */}
+        {errorMessage && (
+          <p className="text-sm text-center text-red-500">{errorMessage}</p>
         )}
       </form>
       <p className="text-center text-sm text-gray-500">
