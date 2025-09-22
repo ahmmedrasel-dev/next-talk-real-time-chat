@@ -15,8 +15,9 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signIn: (phone: string, password: string) => Promise<boolean>;
-  signOut: () => Promise<void>;
+  // Client-side setters: server actions will call these (via client components)
+  setAuthUser: (user: User | null, token?: string | null) => void;
+  clearAuth: () => void;
 }
 
 // Create the context with default values
@@ -24,6 +25,6 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: false,
   error: null,
-  signIn: async () => false,
-  signOut: async () => {},
+  setAuthUser: () => {},
+  clearAuth: () => {},
 });

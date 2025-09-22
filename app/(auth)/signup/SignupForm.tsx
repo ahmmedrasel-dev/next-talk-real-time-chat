@@ -27,7 +27,7 @@ export default function SignupForm() {
     if (state.status === "success") {
       const timer = setTimeout(() => {
         router.push("/signin");
-      }, 2000); // Redirect after 2 seconds
+      }, 2000);
 
       return () => clearTimeout(timer);
     }

@@ -3,70 +3,73 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signInAction } from "@/app/actions/SignInAction";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { setTokens } from "@/lib/token"; // Import token setter
+import { api } from "@/lib/api"; // Import custom api client
 import { useAuth } from "@/app/hooks/useAuth";
 
 export default function SigninForm() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { setAuthUser } = useAuth(); // Get setUser from context
   const router = useRouter();
-  const { signIn, loading } = useAuth();
 
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrorMessage("");
+    setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
-      const success = await signIn(phone, password);
+      // Step 1: Call server action to get tokens
+      const formData = new FormData(e.currentTarget);
+      const result = await signInAction(formData);
 
-      if (success) {
-        // Redirect to chat page on successful login
-        router.push("/chat");
-      } else {
-        setErrorMessage("Login failed. Please check your credentials.");
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Sign-in action failed.");
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      setErrorMessage("An unexpected error occurred. Please try again.");
+
+      const { accessToken, refreshToken } = result.data;
+
+      // Step 2: Set tokens in local storage
+      setTokens(accessToken, refreshToken);
+
+      // Step 3: Fetch user data using the new token
+      const response = await api("/users/me", { method: "GET" });
+      if (!response.ok) {
+        throw new Error("Failed to fetch user profile after login.");
+      }
+      const userData = await response.json();
+
+      // Step 4: Set user data in global context
+      setAuthUser(userData);
+
+      // Step 5: Navigate to the chat page
+      router.push("/chat");
+    } catch (error: any) {
+      console.error("Login process failed:", error);
+      setErrorMessage(error.message || "An unexpected error occurred.");
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-lg">
       <h2 className="text-2xl font-bold text-center">Sign In</h2>
-
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={onSubmit}>
+        {/* Your form inputs (phone, password) */}
         <div className="space-y-2">
           <label htmlFor="phone">Phone Number</label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="Your phone number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
+          <Input id="phone" name="phone" type="tel" required />
         </div>
         <div className="space-y-2">
           <label htmlFor="password">Password</label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <Input id="password" name="password" type="password" required />
         </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Signing In..." : "Sign In"}
         </Button>
-
-        {/* Display error messages */}
         {errorMessage && (
           <p className="text-sm text-center text-red-500">{errorMessage}</p>
         )}
